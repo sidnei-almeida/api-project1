@@ -31,6 +31,21 @@ async def prever_csv(file: UploadFile = File(...)):
     # Previsão
     df['potencial_previsto'] = modelo.predict(df[colunas_necessarias])
 
+    # Mapeia os valores numéricos da coluna 'potencial_previsto' para as categorias
+    def mapear_potencial_crescimento(valor):
+        if valor == 0:
+            return "Baixo"
+        elif valor == 1:
+            return "Mediano"
+        elif valor == 2:
+            return "Alto"
+        elif valor == 3:
+            return "Muito alto"
+        else:
+            return "Desconhecido"  # Caso algum valor não esperado seja previsto
+
+    df['potencial_crescimento'] = df['potencial_previsto'].apply(mapear_potencial_crescimento)
+
     # Converte para CSV em memória
     buffer = io.StringIO()
     df.to_csv(buffer, index=False)
