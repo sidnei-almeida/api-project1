@@ -3,6 +3,7 @@ from starlette.responses import StreamingResponse
 import pandas as pd
 import joblib
 import io
+import os
 
 app = FastAPI()
 
@@ -40,4 +41,5 @@ async def prever_csv(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port)
