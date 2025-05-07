@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
-from starlette.responses import StreamingResponse
+from starlette.responses import JSONResponse
 import pandas as pd
 import joblib
 import io
@@ -31,28 +31,23 @@ async def prever_csv(file: UploadFile = File(...)):
     # Previsão
     df['potencial_previsto'] = modelo.predict(df[colunas_necessarias])
 
-    # Mapeia os valores numéricos da coluna 'potencial_previsto' para as categorias
-    def mapear_potencial_crescimento(valor):
-        if valor == 0:
+    # Adiciona a coluna 'potencial_crescimento'
+    def atribuir_categoria(potencial):
+        if potencial == 0:
             return "Baixo"
-        elif valor == 1:
+        elif potencial == 1:
             return "Mediano"
-        elif valor == 2:
+        elif potencial == 2:
             return "Alto"
-        elif valor == 3:
-            return "Muito alto"
         else:
-            return "Desconhecido"  # Caso algum valor não esperado seja previsto
+            return "Muito alto"
 
-    df['potencial_crescimento'] = df['potencial_previsto'].apply(mapear_potencial_crescimento)
+    df['potencial_crescimento'] = df['potencial_previsto'].apply(atribuir_categoria)
 
-    # Converte para CSV em memória
-    buffer = io.StringIO()
-    df.to_csv(buffer, index=False)
-    buffer.seek(0)
+    # Converte o DataFrame para dicionário e retorna como JSON
+    resultado_json = df.to_dict(orient='records')
 
-    # Retorna como resposta para download
-    return StreamingResponse(buffer, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=previsoes.csv"})
+    return JSONResponse(content=resultado_json)
 
 if __name__ == "__main__":
     import uvicorn
